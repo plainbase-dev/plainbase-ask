@@ -2,6 +2,8 @@
 
 An AI-powered customer support widget you self-host. Connects to your knowledge base, answers questions, and escalates to a ticket when needed.
 
+Check out all Plainbase tools at [plainbase.dev](https://plainbase.dev).
+
 ## Quick start
 
 **1. Clone and configure:**
