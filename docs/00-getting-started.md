@@ -20,11 +20,13 @@ The tradeoff is that you need the disk to persist across restarts — handled ei
 The bottleneck isn't the app itself — it's fast and lightweight. The bottleneck is the LLM API calls, which are network-bound and happen per message.
 
 **Minimum (getting started, low traffic):**
+
 - 1 vCPU
 - 512 MB RAM
 - 5 GB disk (for the databases and Docker image)
 
 **Comfortable (up to ~1,000 visitors/day):**
+
 - 1–2 vCPU
 - 1–2 GB RAM
 - 10–20 GB disk
@@ -86,6 +88,7 @@ Good if you already use OVH for other infrastructure.
 The simplest path for a VPS (Hetzner, OVHcloud, or similar).
 
 **1. Install Docker on your server:**
+
 ```bash
 curl -fsSL https://get.docker.com | sh
 ```
@@ -95,12 +98,15 @@ curl -fsSL https://get.docker.com | sh
 **2. Copy the project files to your server**, or clone from your repo.
 
 **3. Create your `.env` file** from the example:
+
 ```bash
 cp .env.example .env
 ```
+
 Then fill in the required values (see [Environment variables](#environment-variables) below).
 
 **4. Start the container:**
+
 ```bash
 docker compose up -d
 ```
@@ -162,6 +168,7 @@ No changes to `litestream.yml` are needed — it reads all values from env vars.
 ### Step 3: Start (or restart) the container
 
 When `LITESTREAM_S3_BUCKET` is set, the entrypoint script automatically:
+
 - Tries to **restore** the databases from S3 on startup (if they don't already exist on disk)
 - Wraps the app with **continuous replication** — every write is streamed to S3 within seconds
 
@@ -172,6 +179,7 @@ docker compose up -d
 ### Verifying replication
 
 Check the container logs — you should see Litestream output alongside the app:
+
 ```bash
 docker compose logs -f
 ```
@@ -230,12 +238,12 @@ Plainbase Ask needs two models: a **chat model** (generates answers) and an **em
 
 ### Provider overview
 
-| Provider | `AI_PROVIDER` | Chat models | Embedding model |
-|---|---|---|---|
-| **Mistral** *(recommended)* | `mistral` | `mistral-large-latest`, `mistral-small-latest` | `mistral-embed` |
-| OpenAI | `openai` | `gpt-4o`, `gpt-4o-mini` | `text-embedding-3-small`, `text-embedding-3-large` |
-| Anthropic | `anthropic` | `claude-sonnet-4-6`, `claude-opus-4-7`, `claude-haiku-4-5` | None — use a fallback provider |
-| Google | `google` | `gemini-2.0-flash`, `gemini-1.5-pro` | `text-embedding-004` |
+| Provider                    | `AI_PROVIDER` | Chat models                                  | Embedding model                                    |
+| --------------------------- | ------------- | -------------------------------------------- | -------------------------------------------------- |
+| **Mistral** _(recommended)_ | `mistral`     | `mistral-medium-3-5`, `mistral-small-latest` | `mistral-embed`                                    |
+| OpenAI                      | `openai`      | `gpt-5.4-mini`,`gpt-5.4-nano`                | `text-embedding-3-small`, `text-embedding-3-large` |
+| Anthropic                   | `anthropic`   | `claude-sonnet-4-6`, `claude-haiku-4-5`      | None — use a fallback provider                     |
+| Google                      | `google`      | `gemini-2.5-flash`, `gemini-2.5-flash-lite`  | `gemini-embedding-2`                               |
 
 ### Recommended setup
 
@@ -248,48 +256,37 @@ AI_MODEL=mistral-large-latest
 EMBEDDING_MODEL=mistral-embed
 ```
 
-If you want Anthropic for chat (no embedding model), add Mistral as a fallback:
-
-```bash
-AI_PROVIDER=anthropic
-AI_API_KEY=your-anthropic-api-key
-AI_MODEL=claude-sonnet-4-6
-EMBEDDING_PROVIDER=mistral
-EMBEDDING_API_KEY=your-mistral-api-key
-EMBEDDING_MODEL=mistral-embed
-```
-
 ---
 
 ## Environment variables reference
 
 See `.env.example` for the full list. The critical ones for production:
 
-| Variable | Required | Notes |
-|---|---|---|
-| `AI_PROVIDER` | Yes | `openai`, `anthropic`, `mistral`, `google` |
-| `AI_API_KEY` | Yes | API key for the chosen provider |
-| `AI_MODEL` | Yes | e.g. `mistral-large-latest`, `gpt-4o`, `claude-sonnet-4-6` |
-| `EMBEDDING_MODEL` | Yes | e.g. `mistral-embed`, `text-embedding-3-small` |
-| `EMBEDDING_PROVIDER` | If chat provider has no embeddings | e.g. `mistral` |
-| `EMBEDDING_API_KEY` | If `EMBEDDING_PROVIDER` is set | API key for the embedding provider |
-| `ADMIN_PASSWORD` | Yes | Change this before going live |
-| `NODE_ENV` | Yes | Set to `production` (requires HTTPS) |
-| `DOMAIN` | No | Set to your domain (e.g. `mycompany.com`) to enable built-in HTTPS via Caddy |
-| `DATABASE_PATH` | No | Defaults to `/data/db.sqlite` |
-| `VEC_DATABASE_PATH` | No | Defaults to `/data/vec.sqlite` |
-| `PORT` | No | Defaults to `3000` |
-| `LITESTREAM_S3_BUCKET` | If using backups | Bucket name |
-| `LITESTREAM_ACCESS_KEY_ID` | If using backups | S3-compatible access key |
-| `LITESTREAM_SECRET_ACCESS_KEY` | If using backups | S3-compatible secret key |
-| `LITESTREAM_S3_REGION` | If using backups | Bucket region (default: `us-east-1`) |
-| `LITESTREAM_S3_ENDPOINT` | Non-AWS only | e.g. `https://s3.nl-ams.scw.cloud` |
-| `SMTP_HOST` | If using tickets | SMTP server hostname |
-| `SMTP_PORT` | If using tickets | SMTP port (default: `587`) |
-| `SMTP_SECURE` | If using tickets | `true` for port 465/TLS, otherwise `false` |
-| `SMTP_USER` | If using tickets | SMTP username |
-| `SMTP_PASS` | If using tickets | SMTP password |
-| `SMTP_FROM` | No | Sender address (defaults to `SMTP_USER`) |
+| Variable                       | Required                           | Notes                                                                        |
+| ------------------------------ | ---------------------------------- | ---------------------------------------------------------------------------- |
+| `AI_PROVIDER`                  | Yes                                | `openai`, `anthropic`, `mistral`, `google`                                   |
+| `AI_API_KEY`                   | Yes                                | API key for the chosen provider                                              |
+| `AI_MODEL`                     | Yes                                | e.g. `mistral-large-latest`, `gpt-4o`, `claude-sonnet-4-6`                   |
+| `EMBEDDING_MODEL`              | Yes                                | e.g. `mistral-embed`, `text-embedding-3-small`                               |
+| `EMBEDDING_PROVIDER`           | If chat provider has no embeddings | e.g. `mistral`                                                               |
+| `EMBEDDING_API_KEY`            | If `EMBEDDING_PROVIDER` is set     | API key for the embedding provider                                           |
+| `ADMIN_PASSWORD`               | Yes                                | Change this before going live                                                |
+| `NODE_ENV`                     | Yes                                | Set to `production` (requires HTTPS)                                         |
+| `DOMAIN`                       | No                                 | Set to your domain (e.g. `mycompany.com`) to enable built-in HTTPS via Caddy |
+| `DATABASE_PATH`                | No                                 | Defaults to `/data/db.sqlite`                                                |
+| `VEC_DATABASE_PATH`            | No                                 | Defaults to `/data/vec.sqlite`                                               |
+| `PORT`                         | No                                 | Defaults to `3000`                                                           |
+| `LITESTREAM_S3_BUCKET`         | If using backups                   | Bucket name                                                                  |
+| `LITESTREAM_ACCESS_KEY_ID`     | If using backups                   | S3-compatible access key                                                     |
+| `LITESTREAM_SECRET_ACCESS_KEY` | If using backups                   | S3-compatible secret key                                                     |
+| `LITESTREAM_S3_REGION`         | If using backups                   | Bucket region (default: `us-east-1`)                                         |
+| `LITESTREAM_S3_ENDPOINT`       | Non-AWS only                       | e.g. `https://s3.nl-ams.scw.cloud`                                           |
+| `SMTP_HOST`                    | If using tickets                   | SMTP server hostname                                                         |
+| `SMTP_PORT`                    | If using tickets                   | SMTP port (default: `587`)                                                   |
+| `SMTP_SECURE`                  | If using tickets                   | `true` for port 465/TLS, otherwise `false`                                   |
+| `SMTP_USER`                    | If using tickets                   | SMTP username                                                                |
+| `SMTP_PASS`                    | If using tickets                   | SMTP password                                                                |
+| `SMTP_FROM`                    | No                                 | Sender address (defaults to `SMTP_USER`)                                     |
 
 ---
 
