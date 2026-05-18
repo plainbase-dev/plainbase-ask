@@ -1,0 +1,25 @@
+# Ignore environment variables
+.env
+
+# Ignore node_modules and build directories
+node_modules/
+dist/
+
+# Ignore database files
+data/*
+data/*.sqlite
+data/*.sqlite-shm
+data/*.sqlite-wal
+
+# Ignore built files
+public/widget.js
+
+# Ignore setup docs
+initial_docs/
+design/
+claude_docs/
+
+# Ignore editor and OS files
+.DS_Store
+.claude/
+CLAUDE.md

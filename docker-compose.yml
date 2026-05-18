@@ -1,0 +1,11 @@
+services:
+  bot:
+    build: .
+    platform: linux/arm64
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
+    env_file:
+      - .env
+    restart: unless-stopped
