@@ -21,7 +21,7 @@ docker compose up -d
 
 **4. Embed the widget** by copying the snippet from the Widget page in the admin and pasting it into your site.
 
-> For production, put a reverse proxy (Nginx, Caddy) in front to get HTTPS and set `NODE_ENV=production`.
+> For production, set `DOMAIN=mycompany.com` in your `.env` — the container handles HTTPS automatically via Caddy. Or put your own reverse proxy in front and leave `DOMAIN` unset.
 
 ## Backups
 
