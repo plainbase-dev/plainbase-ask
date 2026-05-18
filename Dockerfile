@@ -11,12 +11,15 @@ RUN npm run build:widget
 FROM node:20-slim AS runner
 WORKDIR /app
 
-# Install Litestream
+# Install Litestream and Caddy
 RUN apt-get update && apt-get install -y curl ca-certificates && \
-    LITESTREAM_VERSION=v0.3.13 && \
     ARCH=$(dpkg --print-architecture) && \
+    LITESTREAM_VERSION=v0.3.13 && \
     curl -fsSL "https://github.com/benbjohnson/litestream/releases/download/${LITESTREAM_VERSION}/litestream-${LITESTREAM_VERSION}-linux-${ARCH}.tar.gz" \
       | tar -xz -C /usr/local/bin litestream && \
+    CADDY_VERSION=2.9.1 && \
+    curl -fsSL "https://github.com/caddyserver/caddy/releases/download/v${CADDY_VERSION}/caddy_${CADDY_VERSION}_linux_${ARCH}.tar.gz" \
+      | tar -xz -C /usr/local/bin caddy && \
     apt-get remove -y curl && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 # Install production dependencies (no lockfile so npm resolves for the container platform)
@@ -35,7 +38,7 @@ COPY litestream.yml ./
 RUN mkdir -p /data
 
 VOLUME ["/data"]
-EXPOSE 3000
+EXPOSE 3000 80 443
 
 # Copy and set entrypoint
 COPY docker-entrypoint.sh ./

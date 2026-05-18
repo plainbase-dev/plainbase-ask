@@ -107,14 +107,19 @@ docker compose up -d
 
 The admin is now accessible at `http://your-server-ip:3000/admin`.
 
-**5. Put a reverse proxy in front of it** (Nginx, Caddy, or Coolify's built-in proxy) to get HTTPS. Without HTTPS, set `NODE_ENV=development` — the `NODE_ENV=production` setting enables the Secure flag on the session cookie, which requires HTTPS.
+**5. Enable HTTPS**
 
-A minimal Caddy config:
+The easiest option is to set a `DOMAIN` env var — the container will handle TLS automatically via Caddy and Let's Encrypt, with no separate proxy needed:
+
+```env
+DOMAIN=mycompany.com
 ```
-your-domain.com {
-  reverse_proxy localhost:3000
-}
-```
+
+Caddy will fetch and renew certificates automatically. Certs are stored in `/data/caddy` (inside the already-mounted volume) so they survive container restarts.
+
+Alternatively, you can put your own reverse proxy in front (Nginx, Caddy, Coolify's built-in proxy) and leave `DOMAIN` unset — the app will keep listening on port 3000.
+
+> **Without HTTPS:** set `NODE_ENV=development` to disable the Secure flag on the session cookie. The `NODE_ENV=production` setting requires HTTPS.
 
 ---
 
@@ -270,6 +275,7 @@ See `.env.example` for the full list. The critical ones for production:
 | `EMBEDDING_API_KEY` | If `EMBEDDING_PROVIDER` is set | API key for the embedding provider |
 | `ADMIN_PASSWORD` | Yes | Change this before going live |
 | `NODE_ENV` | Yes | Set to `production` (requires HTTPS) |
+| `DOMAIN` | No | Set to your domain (e.g. `mycompany.com`) to enable built-in HTTPS via Caddy |
 | `DATABASE_PATH` | No | Defaults to `/data/db.sqlite` |
 | `VEC_DATABASE_PATH` | No | Defaults to `/data/vec.sqlite` |
 | `PORT` | No | Defaults to `3000` |
