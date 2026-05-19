@@ -16,7 +16,7 @@ cp .env.example .env
 **2. Start:**
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
 **3. Open the admin** at `http://localhost:3000/admin`, add your documents, and configure the widget.
