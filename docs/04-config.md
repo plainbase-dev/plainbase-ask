@@ -52,13 +52,14 @@ SMTP credentials for sending ticket emails are set via environment variables:
 
 ## 04 — Rate Limits
 
-Guardrails that protect your model budget and prevent abuse. All five have sensible defaults you can reset with the **Reset to defaults** button.
+Guardrails that protect your model budget and prevent abuse. All six have sensible defaults you can reset with the **Reset to defaults** button.
 
 | Setting | Default | What it does |
 |---|---|---|
 | Messages per second per IP | `0.2` | How fast a single IP address can send messages. Requests above this rate receive a 429 error. |
-| Max active conversations per IP | `5` | How many simultaneous chat sessions one IP address can hold open. |
-| Max messages per conversation | `50` | Once a conversation hits this limit, it's sealed — the visitor has to start a new one. |
+| Max conversations per IP | `20` | Total conversations this IP can start until the server restarts (counter never resets mid-run). Raise this if legitimate users are getting blocked unexpectedly. |
+| Max messages per conversation | `25` | Once a conversation hits this limit, it's sealed — the visitor has to start a new one. |
+| Max cost per conversation | `0` | Seals the conversation when its cumulative LLM cost reaches this amount (USD). `0` disables the cap. Only enforced when cost tracking is active (custom prices set in the Cost section above, or a recognised model). |
 | Conversation memory window | `10` | How many recent messages the AI sees as context on each call. Higher = better memory, higher cost. |
 | Max response tokens | `1000` | Hard cap on how long each individual AI reply can be. |
 

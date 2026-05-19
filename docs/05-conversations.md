@@ -17,8 +17,9 @@ The filter bar at the top lets you narrow the list:
 
 - **Search** — type any text to filter by visitor email, conversation ID, or message content. The list updates automatically as you type.
 - **Ticket filter** — click the Ticket chip to show only conversations where a support ticket was submitted.
+- **Blocked filter** — click the Blocked chip to show only conversations that were sealed by a rate limit (message limit or cost limit).
 
-Filters combine — you can search for an email and filter to ticket conversations at the same time.
+Filters combine — you can search for an email and filter to blocked conversations at the same time.
 
 ## Conversation list
 
@@ -29,6 +30,7 @@ Each row in the list shows:
 - Conversation ID (shortened)
 - Number of messages
 - A "Ticket" badge if a ticket was submitted in that conversation
+- A "Blocked" badge (with the reason: "Msg limit" or "Cost limit") if the conversation was sealed by a rate limit
 
 Pagination sits at the bottom of the list — 20 conversations per page.
 

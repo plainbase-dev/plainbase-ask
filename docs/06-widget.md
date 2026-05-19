@@ -54,6 +54,7 @@ For each language you configure:
 | Ticket card title | Heading on the ticket submission form |
 | Ticket card body text | Explanatory text on the ticket form |
 | Office hours | Shown on the ticket card. One line per entry, use `|` to separate label from hours (e.g. `Mon – Fri | 9:00 – 18:00`). Leave empty to hide. |
+| Conversation limit message | Text shown to the visitor when their conversation is sealed by any rate limit. Leave empty to use the default: "Conversation limit reached." |
 
 ## Logo
 
