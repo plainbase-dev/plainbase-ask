@@ -29,8 +29,9 @@ export { loginAttempts };
 function getRateLimitConfig() {
   return {
     messagesPerSecond: parseFloat(getConfigValue('rate_limit_messages_per_second', '0.2')),
-    maxConversationsPerIp: parseInt(getConfigValue('rate_limit_max_conversations_per_ip', '5'), 10),
-    maxMessagesPerConv: parseInt(getConfigValue('rate_limit_max_messages_per_conv', '50'), 10),
+    maxConversationsPerIp: parseInt(getConfigValue('rate_limit_max_conversations_per_ip', '20'), 10),
+    maxMessagesPerConv: parseInt(getConfigValue('rate_limit_max_messages_per_conv', '25'), 10),
+    maxCostPerConv: parseFloat(getConfigValue('rate_limit_max_cost_per_conv', '0')),
     memoryWindow: parseInt(getConfigValue('conversation_memory_window', '10'), 10),
   };
 }
@@ -161,8 +162,8 @@ chatRouter.post(
     }
 
     if (!convId) {
-      if (!incrementConversationCount(ip)) {
-        return c.json({ error: 'Too many active conversations' }, 429);
+      if (!c.get('adminPreview') && !incrementConversationCount(ip)) {
+        return c.json({ error: 'Too many active conversations', conversationBlocked: true }, 429);
       }
       const row = db.prepare(
         'INSERT INTO conversations (agent_id) VALUES (?) RETURNING id'
@@ -178,7 +179,19 @@ chatRouter.post(
     ).get(convId) as { count: number }).count;
 
     if (msgCount >= config.maxMessagesPerConv) {
-      return c.json({ error: 'Conversation message limit reached' }, 429);
+      db.prepare('UPDATE conversations SET blocked_reason = ? WHERE id = ?').run('message_limit', convId);
+      return c.json({ error: 'Conversation message limit reached', conversationBlocked: true }, 429);
+    }
+
+    // Check per-conversation cost cap (only when cost tracking is active)
+    if (config.maxCostPerConv > 0) {
+      const costRow = db.prepare(
+        'SELECT COALESCE(SUM(cost_usd), 0) as total FROM ai_logs WHERE conversation_id = ?'
+      ).get(convId) as { total: number };
+      if (costRow.total >= config.maxCostPerConv) {
+        db.prepare('UPDATE conversations SET blocked_reason = ? WHERE id = ?').run('cost_limit', convId);
+        return c.json({ error: 'Conversation cost limit reached', conversationBlocked: true }, 429);
+      }
     }
 
     // Keyword trigger pre-check (only when ticket feature is enabled)

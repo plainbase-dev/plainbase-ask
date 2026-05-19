@@ -254,6 +254,11 @@ function addLangRow() {
       <textarea class="lang-card-hours" rows="3" placeholder="Mon – Fri | 9:00 – 18:00&#10;Saturday | 10:00 – 14:00&#10;Sunday | Closed" style="\${TS}"></textarea>
       <p style="font-size:11.5px;color:#94a3b8;margin:4px 0 0">One row per line, use <code>|</code> to separate label from hours. Leave empty to hide.</p>
     </div>
+    <div>
+      <label style="font-size:12px;color:#64748b">Conversation limit message</label>
+      <input type="text" class="lang-conv-limit" placeholder="Conversation limit reached." style="\${IS}" />
+      <p style="font-size:11.5px;color:#94a3b8;margin:4px 0 0">Shown when a conversation is blocked by any rate limit. Leave empty to use the default.</p>
+    </div>
   \`;
   document.getElementById('lang-rows').appendChild(row);
 }
@@ -270,6 +275,7 @@ document.getElementById('widget-form').addEventListener('submit', function() {
     ticketCardTitle: row.querySelector('.lang-card-title').value.trim(),
     ticketCardText: row.querySelector('.lang-card-text').value.trim(),
     ticketCardOfficeHours: row.querySelector('.lang-card-hours').value.trim(),
+    conversationLimitMessage: row.querySelector('.lang-conv-limit').value.trim(),
   })).filter(l => l.code && l.label);
   document.getElementById('lang-json').value = JSON.stringify(langs);
 });
@@ -290,6 +296,7 @@ type LangEntry = {
 	ticketCardTitle?: string;
 	ticketCardText?: string;
 	ticketCardOfficeHours?: string;
+	conversationLimitMessage?: string;
 };
 
 const IS = 'width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px';
@@ -347,6 +354,11 @@ function LangRow({ l }: { l: LangEntry }) {
 				<label style="font-size:12px;color:#64748b">Office hours</label>
 				<textarea class="lang-card-hours" rows={3} placeholder="Mon – Fri | 9:00 – 18:00&#10;Saturday | 10:00 – 14:00&#10;Sunday | Closed" style={TS}>{l.ticketCardOfficeHours ?? ''}</textarea>
 				<p style="font-size:11.5px;color:#94a3b8;margin:4px 0 0">One row per line, use <code>|</code> to separate label from hours (e.g. <code>Mon – Fri | 9:00 – 18:00</code>). Leave empty to hide.</p>
+			</div>
+			<div>
+				<label style="font-size:12px;color:#64748b">Conversation limit message</label>
+				<input type="text" class="lang-conv-limit" value={l.conversationLimitMessage ?? ''} placeholder="Conversation limit reached." style={IS} />
+				<p style="font-size:11.5px;color:#94a3b8;margin:4px 0 0">Shown when a conversation is blocked by any rate limit. Leave empty to use the default.</p>
 			</div>
 		</div>
 	);

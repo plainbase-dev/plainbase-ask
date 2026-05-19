@@ -173,10 +173,11 @@ const CONFIG_JS = `
 
   var rateDefaults = {
     rate_limit_messages_per_second: '0.2',
-    rate_limit_max_conversations_per_ip: '5',
-    rate_limit_max_messages_per_conv: '50',
+    rate_limit_max_conversations_per_ip: '20',
+    rate_limit_max_messages_per_conv: '25',
     conversation_memory_window: '10',
-    max_response_tokens: '1000'
+    max_response_tokens: '1000',
+    rate_limit_max_cost_per_conv: '0'
   };
   document.getElementById('btn-reset-defaults').addEventListener('click', function () {
     Object.keys(rateDefaults).forEach(function (name) {
@@ -404,22 +405,31 @@ export function configView(saved = false, csrfToken = '', error?: string): strin
 									<div class="rate-default"><em>def</em> 0.2</div>
 								</div>
 								<div class="rate-row">
-									<div class="rate-name">Max active conversations per IP<span class="h">Caps how many parallel sessions a single IP can hold open.</span></div>
+									<div class="rate-name">Max conversations per IP<span class="h">Total conversations this IP can start until the server restarts (counter never resets mid-run). Raise this if legitimate users are getting blocked unexpectedly.</span></div>
 									<div class="field">
 										<input class="input mono" name="rate_limit_max_conversations_per_ip" type="number" min="1"
-											value={String(config['rate_limit_max_conversations_per_ip'] ?? '5')} />
+											value={String(config['rate_limit_max_conversations_per_ip'] ?? '20')} />
 										<span class="suffix">convs</span>
 									</div>
-									<div class="rate-default"><em>def</em> 5</div>
+									<div class="rate-default"><em>def</em> 20</div>
 								</div>
 								<div class="rate-row">
 									<div class="rate-name">Max messages per conversation<span class="h">After this, the conversation is sealed and a new one must be started.</span></div>
 									<div class="field">
 										<input class="input mono" name="rate_limit_max_messages_per_conv" type="number" min="1"
-											value={String(config['rate_limit_max_messages_per_conv'] ?? '50')} />
+											value={String(config['rate_limit_max_messages_per_conv'] ?? '25')} />
 										<span class="suffix">msg</span>
 									</div>
-									<div class="rate-default"><em>def</em> 50</div>
+									<div class="rate-default"><em>def</em> 25</div>
+								</div>
+								<div class="rate-row">
+									<div class="rate-name">Max cost per conversation<span class="h">Seals the conversation when its cumulative LLM cost reaches this threshold. 0 = no limit. Only enforced when cost tracking is active (custom prices set in the Cost section above, or a recognised model).</span></div>
+									<div class="field">
+										<input class="input mono" name="rate_limit_max_cost_per_conv" type="number" inputmode="decimal" step="0.001" min="0"
+											value={String(config['rate_limit_max_cost_per_conv'] ?? '0')} />
+										<span class="suffix">USD</span>
+									</div>
+									<div class="rate-default"><em>def</em> 0</div>
 								</div>
 								<div class="rate-row">
 									<div class="rate-name">Conversation memory window<span class="h">How many recent messages are included as context on each LLM call.</span></div>

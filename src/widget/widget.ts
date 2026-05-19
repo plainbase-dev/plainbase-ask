@@ -88,6 +88,7 @@ function escapeHtml(s: string): string {
 	let ticketCardTitle = "Leave us a message";
 	let ticketCardText = "";
 	let ticketCardOfficeHours = "";
+	let conversationLimitMessage = "Conversation limit reached.";
 	let brandLogoUrl: string | null = null;
 
 	// SVG constants
@@ -534,6 +535,7 @@ function escapeHtml(s: string): string {
 		ticketCardTitle?: string;
 		ticketCardText?: string;
 		ticketCardOfficeHours?: string;
+		conversationLimitMessage?: string;
 	};
 
 	function applyLangConfig(lang: LangOption) {
@@ -550,6 +552,7 @@ function escapeHtml(s: string): string {
 		ticketCardTitle = lang.ticketCardTitle || "Leave us a message";
 		ticketCardText = lang.ticketCardText ?? "";
 		ticketCardOfficeHours = lang.ticketCardOfficeHours ?? "";
+		conversationLimitMessage = lang.conversationLimitMessage || "Conversation limit reached.";
 	}
 
 	function showLangPicker(langs: LangOption[]) {
@@ -810,6 +813,16 @@ function escapeHtml(s: string): string {
 
 			if (!res.ok) {
 				typingEl.remove();
+				if (res.status === 429) {
+					try {
+						const body = await res.clone().json() as { conversationBlocked?: boolean };
+						if (body.conversationBlocked) {
+							addStatusMessage(conversationLimitMessage);
+							setState("idle");
+							return;
+						}
+					} catch { /* fall through to generic message */ }
+				}
 				addStatusMessage("Something went wrong. Please try again.");
 				setState("idle");
 				return;

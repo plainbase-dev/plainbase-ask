@@ -315,6 +315,7 @@ export function registerAdminRoutes(app: Hono): void {
       'rate_limit_messages_per_second',
       'rate_limit_max_conversations_per_ip',
       'rate_limit_max_messages_per_conv',
+      'rate_limit_max_cost_per_conv',
       'conversation_memory_window',
       'max_response_tokens',
       'cost_input_per_1m',
@@ -340,8 +341,9 @@ export function registerAdminRoutes(app: Hono): void {
     const page = Math.max(1, parseInt(c.req.query('page') ?? '1', 10));
     const q = c.req.query('q') ?? '';
     const ticket = c.req.query('ticket') === '1';
+    const blocked = c.req.query('blocked') === '1';
     const selectedId = c.req.query('id') ?? null;
-    return c.html(conversationsView({ page, q, ticket, selectedId }));
+    return c.html(conversationsView({ page, q, ticket, blocked, selectedId }));
   });
 
   // AJAX detail fragment — returns only the inner detail pane HTML

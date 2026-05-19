@@ -10,15 +10,17 @@ interface ConvRow {
 	message_count: number;
 	has_ticket: number;
 	snippet: string | null;
+	blocked_reason: string | null;
 }
 
 export function conversationsView(params: {
 	page: number;
 	q: string;
 	ticket: boolean;
+	blocked: boolean;
 	selectedId: string | null;
 }): string {
-	const { page, q, ticket, selectedId } = params;
+	const { page, q, ticket, blocked, selectedId } = params;
 	const perPage = 20;
 	const offset = (page - 1) * perPage;
 	const like = q ? `%${q}%` : null;
@@ -37,6 +39,9 @@ export function conversationsView(params: {
 	if (ticket) {
 		whereParts.push('EXISTS (SELECT 1 FROM tickets WHERE conversation_id = c.id)');
 	}
+	if (blocked) {
+		whereParts.push('c.blocked_reason IS NOT NULL');
+	}
 
 	const where = whereParts.join(' AND ');
 
@@ -47,7 +52,7 @@ export function conversationsView(params: {
 
 	const convs = db
 		.prepare(
-			`SELECT c.id, c.user_email, c.started_at,
+			`SELECT c.id, c.user_email, c.started_at, c.blocked_reason,
 				(SELECT COUNT(*) FROM messages WHERE conversation_id = c.id) as message_count,
 				(SELECT COUNT(*) FROM tickets WHERE conversation_id = c.id) as has_ticket,
 				(SELECT content FROM messages WHERE conversation_id = c.id AND role = 'user' ORDER BY created_at ASC LIMIT 1) as snippet
@@ -65,6 +70,8 @@ export function conversationsView(params: {
 		if ((overrides.q ?? q) !== '') p.set('q', String(overrides.q ?? q));
 		const tk = overrides.ticket !== undefined ? overrides.ticket : ticket;
 		if (tk) p.set('ticket', '1');
+		const bl = overrides.blocked !== undefined ? overrides.blocked : blocked;
+		if (bl) p.set('blocked', '1');
 		const pg = overrides.page ?? page;
 		if (Number(pg) > 1) p.set('page', String(pg));
 		const id = overrides.id !== undefined ? overrides.id : resolvedId;
@@ -88,6 +95,10 @@ export function conversationsView(params: {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="13" height="13" stroke-width="1.8"><path d="M3 10a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v0a2 2 0 0 0 0 4v0a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v0a2 2 0 0 0 0-4z"/><line x1="14" y1="8" x2="14" y2="16" stroke-dasharray="2 2"/></svg>
         Ticket <span class="fb-chip-v">${ticket ? 'on' : 'any'}</span>
       </button>
+      <button type="submit" name="blocked" value="${blocked ? '' : '1'}" class="fb-chip${blocked ? ' active' : ''}" formnovalidate>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="13" height="13" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        Blocked <span class="fb-chip-v">${blocked ? 'on' : 'any'}</span>
+      </button>
     </form>
   `;
 
@@ -100,12 +111,19 @@ export function conversationsView(params: {
 		return new Date(ts * 1000).toLocaleDateString();
 	};
 
+	const blockedReasonLabel: Record<string, string> = {
+		message_limit: 'Msg limit',
+		cost_limit: 'Cost limit',
+	};
+
 	const listItems = convs.map(c => {
 		const href = `/admin/conversations${filterParams({ id: c.id, page })}`;
 		const isActive = c.id === resolvedId;
 		const snippetText = c.snippet ? escapeHtml(c.snippet.slice(0, 90)) : '';
 		const msgIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="11" height="11" stroke-width="1.7"><path d="M5 5h14v10H10l-5 4V5z"/></svg>`;
 		const ticketIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="11" height="11" stroke-width="1.7"><path d="M3 10a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v0a2 2 0 0 0 0 4v0a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v0a2 2 0 0 0 0-4z"/><line x1="14" y1="8" x2="14" y2="16" stroke-dasharray="2 2"/></svg>`;
+		const blockedIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="11" height="11" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>`;
+		const blockedLabel = c.blocked_reason ? (blockedReasonLabel[c.blocked_reason] ?? c.blocked_reason) : null;
 		return `
       <a href="${href}" class="ci${isActive ? ' active' : ''}">
         <div class="ci-row1">
@@ -118,6 +136,7 @@ export function conversationsView(params: {
           <span class="ci-dot">·</span>
           <span class="ci-msgs">${msgIcon} ${c.message_count}</span>
           ${c.has_ticket ? `<span class="ci-ticket">${ticketIcon} Ticket</span>` : ''}
+          ${blockedLabel ? `<span class="ci-blocked">${blockedIcon} ${escapeHtml(blockedLabel)}</span>` : ''}
         </div>
       </a>
     `;
@@ -442,6 +461,7 @@ function pageStyles(): string {
   .ci-dot { color: var(--line-strong); }
   .ci-msgs { display: inline-flex; align-items: center; gap: 3px; }
   .ci-ticket { display: inline-flex; align-items: center; gap: 3px; color: oklch(38% 0.12 250); background: oklch(92% 0.05 250); border-radius: 3px; padding: 0 4px; font-size: 10px; font-weight: 600; }
+  .ci-blocked { display: inline-flex; align-items: center; gap: 3px; color: oklch(40% 0.15 25); background: oklch(93% 0.06 25); border-radius: 3px; padding: 0 4px; font-size: 10px; font-weight: 600; }
   .cl-foot { flex-shrink: 0; display: flex; align-items: center; padding: 8px 14px; border-top: 1px solid var(--line); background: var(--canvas); }
   .cl-page { font-size: 12px; color: var(--ink-4); }
   .pg-btn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 5px; color: var(--ink-3); text-decoration: none; border: 1px solid var(--line-strong); background: var(--panel); transition: background .1s; }
