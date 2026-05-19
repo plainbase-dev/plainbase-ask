@@ -12,7 +12,7 @@ FROM node:20-slim AS runner
 WORKDIR /app
 
 # Install Litestream and Caddy
-RUN apt-get update && apt-get install -y curl ca-certificates && \
+RUN apt-get update && apt-get install -y curl ca-certificates procps && \
     ARCH=$(dpkg --print-architecture) && \
     LITESTREAM_VERSION=v0.3.13 && \
     curl -fsSL "https://github.com/benbjohnson/litestream/releases/download/${LITESTREAM_VERSION}/litestream-${LITESTREAM_VERSION}-linux-${ARCH}.tar.gz" \
