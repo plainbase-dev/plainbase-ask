@@ -26,7 +26,8 @@ function checkTicketRateLimit(ip: string): boolean {
   return true;
 }
 
-export const ticketRouter = new Hono();
+type TicketEnv = { Variables: { adminPreview: boolean } };
+export const ticketRouter = new Hono<TicketEnv>();
 
 ticketRouter.post(
   '/ticket',
@@ -52,12 +53,14 @@ ticketRouter.post(
     const allowedDomains = JSON.parse(agent.allowed_domains) as string[];
     console.log('[ticket] allowed_domains:', allowedDomains, '| origin:', origin);
 
-    if (isOriginAllowed(origin, allowedDomains)) {
-      c.res.headers.set('Access-Control-Allow-Origin', origin);
-      c.res.headers.set('Vary', 'Origin');
-    } else if (allowedDomains.length > 0) {
-      console.warn('[ticket] blocked — origin not in allowed_domains');
-      return c.json({ error: 'Domain not allowed' }, 403);
+    if (!c.get('adminPreview')) {
+      if (isOriginAllowed(origin, allowedDomains)) {
+        c.res.headers.set('Access-Control-Allow-Origin', origin);
+        c.res.headers.set('Vary', 'Origin');
+      } else if (allowedDomains.length > 0) {
+        console.warn('[ticket] blocked — origin not in allowed_domains');
+        return c.json({ error: 'Domain not allowed' }, 403);
+      }
     }
 
     if (!checkTicketRateLimit(ip)) {

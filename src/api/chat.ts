@@ -122,11 +122,13 @@ chatRouter.post(
     const allowedDomains = JSON.parse(agent.allowed_domains) as string[];
 
     // CORS header
-    if (isOriginAllowed(origin, allowedDomains)) {
-      c.res.headers.set('Access-Control-Allow-Origin', origin);
-      c.res.headers.set('Vary', 'Origin');
-    } else if (allowedDomains.length > 0) {
-      return c.json({ error: 'Domain not allowed' }, 403);
+    if (!c.get('adminPreview')) {
+      if (isOriginAllowed(origin, allowedDomains)) {
+        c.res.headers.set('Access-Control-Allow-Origin', origin);
+        c.res.headers.set('Vary', 'Origin');
+      } else if (allowedDomains.length > 0) {
+        return c.json({ error: 'Domain not allowed' }, 403);
+      }
     }
 
     if (!c.get('adminPreview') && getConfigValue('widget_active', '0') !== '1') {

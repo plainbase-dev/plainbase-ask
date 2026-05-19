@@ -432,12 +432,17 @@ function escapeHtml(s: string): string {
 			const brandMark = panel.querySelector(
 				"#sb-brand-mark",
 			) as HTMLElement;
-			brandMark.style.background = "transparent";
 			const img = document.createElement("img");
 			img.src = logoUrl;
 			img.alt = "";
 			img.style.cssText =
 				"width:28px;height:28px;object-fit:contain;border-radius:6px;";
+			img.onerror = () => {
+				brandLogoUrl = null;
+				brandMark.style.background = "";
+				brandMark.innerHTML = sparkSvg;
+			};
+			brandMark.style.background = "transparent";
 			brandMark.innerHTML = "";
 			brandMark.appendChild(img);
 		}

@@ -12,12 +12,14 @@ widgetRouter.get('/api/widget-config', (c) => {
   const agent = getAgent();
   const allowedDomains = JSON.parse(agent.allowed_domains) as string[];
 
-  const origin = c.req.header('Origin') ?? '';
-  if (isOriginAllowed(origin, allowedDomains)) {
-    c.res.headers.set('Access-Control-Allow-Origin', origin);
-    c.res.headers.set('Vary', 'Origin');
-  } else if (allowedDomains.length > 0) {
-    return c.json({ error: 'Domain not allowed' }, 403);
+  if (!c.get('adminPreview')) {
+    const origin = c.req.header('Origin') ?? '';
+    if (isOriginAllowed(origin, allowedDomains)) {
+      c.res.headers.set('Access-Control-Allow-Origin', origin);
+      c.res.headers.set('Vary', 'Origin');
+    } else if (allowedDomains.length > 0) {
+      return c.json({ error: 'Domain not allowed' }, 403);
+    }
   }
 
   if (!c.get('adminPreview') && getConfigValue('widget_active', '0') !== '1') {
@@ -50,12 +52,14 @@ widgetRouter.get('/api/logo', (c) => {
   const agent = getAgent();
   const allowedDomains = JSON.parse(agent.allowed_domains) as string[];
 
-  const origin = c.req.header('Origin') ?? '';
-  if (isOriginAllowed(origin, allowedDomains)) {
-    c.res.headers.set('Access-Control-Allow-Origin', origin);
-    c.res.headers.set('Vary', 'Origin');
-  } else if (allowedDomains.length > 0) {
-    return c.body(null, 403);
+  if (!c.get('adminPreview')) {
+    const origin = c.req.header('Origin') ?? '';
+    if (origin && isOriginAllowed(origin, allowedDomains)) {
+      c.res.headers.set('Access-Control-Allow-Origin', origin);
+      c.res.headers.set('Vary', 'Origin');
+    } else if (origin && allowedDomains.length > 0) {
+      return c.body(null, 403);
+    }
   }
 
   const logoData = getConfigValue('logo_data', '');
