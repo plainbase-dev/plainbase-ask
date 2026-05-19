@@ -19,12 +19,11 @@ export async function retrieveContext(agentId: string, query: string, topK = 5):
 
   if (rows.length === 0) return '';
 
-  let urlIndex = 0;
   return rows
-    .map((r) => {
+    .map((r, i) => {
       const label = r.source_url
-        ? `[Source ${++urlIndex}] (${r.source_url})`
-        : `[Uploaded Document]`;
+        ? `[Source ${i + 1}] (${r.source_url})`
+        : `[Source ${i + 1}] (uploaded document, no URL)`;
       return `${label}\n${r.content}`;
     })
     .join('\n\n---\n\n');
