@@ -7,20 +7,21 @@ COPY src/widget ./src/widget
 COPY tsconfig.json ./
 RUN npm run build:widget
 
-# Stage 2: Production image
+# Stage 2: Pull Litestream and Caddy binaries from official images
+FROM litestream/litestream:0.3.13 AS litestream
+FROM caddy:2.9.1 AS caddy
+
+# Stage 3: Production image
 FROM node:20-slim AS runner
 WORKDIR /app
 
-# Install Litestream and Caddy
-RUN apt-get update && apt-get install -y curl ca-certificates procps && \
-    ARCH=$(dpkg --print-architecture) && \
-    LITESTREAM_VERSION=v0.3.13 && \
-    curl -fsSL "https://github.com/benbjohnson/litestream/releases/download/${LITESTREAM_VERSION}/litestream-${LITESTREAM_VERSION}-linux-${ARCH}.tar.gz" \
-      | tar -xz -C /usr/local/bin litestream && \
-    CADDY_VERSION=2.9.1 && \
-    curl -fsSL "https://github.com/caddyserver/caddy/releases/download/v${CADDY_VERSION}/caddy_${CADDY_VERSION}_linux_${ARCH}.tar.gz" \
-      | tar -xz -C /usr/local/bin caddy && \
-    apt-get remove -y curl && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+# Copy binaries from official images
+COPY --from=litestream /usr/local/bin/litestream /usr/local/bin/litestream
+COPY --from=caddy /usr/bin/caddy /usr/local/bin/caddy
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y ca-certificates procps && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install production dependencies (no lockfile so npm resolves for the container platform)
 COPY package.json ./
