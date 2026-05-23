@@ -23,7 +23,7 @@ docker compose up -d --build
 
 **4. Embed the widget** by copying the snippet from the Widget page in the admin and pasting it into your site.
 
-> For production, set `DOMAIN=mycompany.com` in your `.env` — the container handles HTTPS automatically via Caddy. Or put your own reverse proxy in front and leave `DOMAIN` unset.
+> For production, put a reverse proxy in front (Coolify, Koyeb, Railway, or your own Nginx/Caddy) to handle HTTPS. The app listens on port 3000.
 
 ## Backups
 
