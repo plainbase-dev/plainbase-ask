@@ -7,21 +7,15 @@ COPY src/widget ./src/widget
 COPY tsconfig.json ./
 RUN npm run build:widget
 
-# Stage 2: Pull Litestream and Caddy binaries from official images
+# Stage 2: Pull Litestream binary from official image
 FROM litestream/litestream:0.3.13 AS litestream
-FROM caddy:2.9.1 AS caddy
 
 # Stage 3: Production image
-FROM node:20-slim AS runner
+FROM node:20 AS runner
 WORKDIR /app
 
-# Copy binaries from official images
+# Copy Litestream binary
 COPY --from=litestream /usr/local/bin/litestream /usr/local/bin/litestream
-COPY --from=caddy /usr/bin/caddy /usr/local/bin/caddy
-
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y ca-certificates procps && \
-    rm -rf /var/lib/apt/lists/*
 
 # Install production dependencies (no lockfile so npm resolves for the container platform)
 COPY package.json ./
@@ -39,7 +33,7 @@ COPY litestream.yml ./
 RUN mkdir -p /data
 
 VOLUME ["/data"]
-EXPOSE 3000 80 443
+EXPOSE 3000
 
 # Copy and set entrypoint
 COPY docker-entrypoint.sh ./

@@ -6,21 +6,6 @@ VEC_DB_PATH="${VEC_DATABASE_PATH:-/data/vec.sqlite}"
 
 mkdir -p "$(dirname "$DB_PATH")" "$(dirname "$VEC_DB_PATH")"
 
-# If DOMAIN is set, start Caddy to handle TLS termination
-if [ -n "$DOMAIN" ]; then
-  mkdir -p /data/caddy
-  cat > /tmp/Caddyfile <<EOF
-{
-  storage file_system /data/caddy
-}
-
-$DOMAIN {
-  reverse_proxy localhost:3000
-}
-EOF
-  caddy run --config /tmp/Caddyfile &
-fi
-
 # If Litestream is configured and DBs don't exist, try to restore from S3
 if [ -n "$LITESTREAM_S3_BUCKET" ]; then
   if [ ! -f "$DB_PATH" ]; then

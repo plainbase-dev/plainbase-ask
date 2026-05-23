@@ -4,8 +4,6 @@ services:
     platform: linux/arm64
     ports:
       - "3000:3000"
-      - "80:80"
-      - "443:443"
     volumes:
       - ./data:/data
     env_file:
