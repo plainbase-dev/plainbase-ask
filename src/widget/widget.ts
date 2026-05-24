@@ -940,14 +940,42 @@ function escapeHtml(s: string): string {
 		}
 	}
 
+	// iOS keyboard: shrink panel to the visual viewport so messages stay visible
+	function adjustForVisualViewport() {
+		if (panel.style.display === "none") return;
+		if (window.innerWidth > 640) {
+			panel.style.height = "";
+			panel.style.top = "";
+			panel.style.bottom = "";
+			return;
+		}
+		const vv = window.visualViewport;
+		if (!vv) return;
+		panel.style.height = vv.height + "px";
+		panel.style.top = vv.offsetTop + "px";
+		panel.style.bottom = "auto";
+		requestAnimationFrame(() => {
+			messagesEl.scrollTop = messagesEl.scrollHeight;
+		});
+	}
+
+	if (window.visualViewport) {
+		window.visualViewport.addEventListener("resize", adjustForVisualViewport);
+		window.visualViewport.addEventListener("scroll", adjustForVisualViewport);
+	}
+
 	function openPanel() {
 		panel.style.display = "flex";
 		btnLabelEl.style.display = "none";
+		adjustForVisualViewport();
 		inputEl.focus();
 	}
 
 	function closePanel() {
 		panel.style.display = "none";
+		panel.style.height = "";
+		panel.style.top = "";
+		panel.style.bottom = "";
 		if (btnLabelEl.textContent) btnLabelEl.style.display = "block";
 	}
 
