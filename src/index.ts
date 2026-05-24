@@ -35,6 +35,11 @@ app.use("/widget.js", async (c, next) => {
 	c.res.headers.set("Cross-Origin-Resource-Policy", "cross-origin");
 });
 
+app.use("/api/logo", async (c, next) => {
+	await next();
+	c.res.headers.set("Cross-Origin-Resource-Policy", "cross-origin");
+});
+
 app.use(
 	"*",
 	secureHeaders({
