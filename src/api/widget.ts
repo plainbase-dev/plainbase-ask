@@ -70,6 +70,7 @@ widgetRouter.get('/api/logo', (c) => {
   return c.body(buffer, 200, {
     'Content-Type': logoMime,
     'Cache-Control': 'public, max-age=3600',
+    'Cross-Origin-Resource-Policy': 'cross-origin',
   });
 });
 
